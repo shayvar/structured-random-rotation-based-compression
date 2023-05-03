@@ -51,7 +51,7 @@ If the message *"Faster CUDA implementation for Hadamard and bit packing is not 
 
 ### Install from source
 
-For Windows and Ubuntu versions earlier than 22.04, dowload source from [the official repository](https://github.com/shayvar/structured-random-rotation-based-compression) and run `$ python setup.py install`
+For Windows and Ubuntu versions earlier than 22.04, download source from [the official repository](https://github.com/shayvar/structured-random-rotation-based-compression) and run `$ python setup.py install`
 
 For Ubuntu 22.04 use build and pip and other standards-based tools to build and install from source.
 
