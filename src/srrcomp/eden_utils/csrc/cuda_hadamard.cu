@@ -232,11 +232,9 @@ void HadamardWithCudaNoSharedMemory(float* vec, int n, int device)
 	}
 	
 	int maxThreadsPerBlock;
-	int sharedMemPerBlock;
 
-	// read the following attributes from the cuda device
+	// read the following attribute from the cuda device
 	cudaDeviceGetAttribute(&maxThreadsPerBlock, cudaDevAttrMaxThreadsPerBlock, device);
-	cudaDeviceGetAttribute(&sharedMemPerBlock, cudaDevAttrMaxSharedMemoryPerBlock, device);
 
 	int radix2_num_threads = (n >> 1) < maxThreadsPerBlock ? (n >> 1) : maxThreadsPerBlock;
 	int radix4_num_threads = (n >> 2) < maxThreadsPerBlock ? (n >> 2) : maxThreadsPerBlock;
