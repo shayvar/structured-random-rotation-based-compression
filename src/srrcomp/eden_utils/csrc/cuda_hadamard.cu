@@ -231,12 +231,16 @@ void HadamardWithCudaNoSharedMemory(float* vec, int n, int device)
 		fprintf(stderr, "\n*** (CPP) HadamardWithCudaNoSharedMemory failed. %s ***\n", cudaGetErrorString(cudaStatus));
 	}
 	
-	struct cudaDeviceProp prop;
-	cudaGetDeviceProperties(&prop, device);
+	int maxThreadsPerBlock;
+	int sharedMemPerBlock;
 
-	int radix2_num_threads = (n >> 1) < prop.maxThreadsPerBlock ? (n >> 1) : prop.maxThreadsPerBlock;
-	int radix4_num_threads = (n >> 2) < prop.maxThreadsPerBlock ? (n >> 2) : prop.maxThreadsPerBlock;
-	int radix8_num_threads = (n >> 3) < prop.maxThreadsPerBlock ? (n >> 3) : prop.maxThreadsPerBlock;
+	// read the following attributes from the cuda device
+	cudaDeviceGetAttribute(&maxThreadsPerBlock, cudaDevAttrMaxThreadsPerBlock, device);
+	cudaDeviceGetAttribute(&sharedMemPerBlock, cudaDevAttrMaxSharedMemoryPerBlock, device);
+
+	int radix2_num_threads = (n >> 1) < maxThreadsPerBlock ? (n >> 1) : maxThreadsPerBlock;
+	int radix4_num_threads = (n >> 2) < maxThreadsPerBlock ? (n >> 2) : maxThreadsPerBlock;
+	int radix8_num_threads = (n >> 3) < maxThreadsPerBlock ? (n >> 3) : maxThreadsPerBlock;
 
 	int log2n = (int)log2(n);
 	int len = 1;
@@ -280,13 +284,17 @@ void HadamardWithCuda(float* vec, int n, int device)
 		fprintf(stderr, "\n*** (CPP) HadamardWithCuda failed. %s ***\n", cudaGetErrorString(cudaStatus));
 	}
 
-	struct cudaDeviceProp prop;
-	cudaGetDeviceProperties(&prop, device);
+	int maxThreadsPerBlock;
+	int sharedMemPerBlock;
+
+	// read the following attributes from the cuda device
+	cudaDeviceGetAttribute(&maxThreadsPerBlock, cudaDevAttrMaxThreadsPerBlock, device);
+	cudaDeviceGetAttribute(&sharedMemPerBlock, cudaDevAttrMaxSharedMemoryPerBlock, device);
 
 	int log2n = (int)log2(n);
 
 	// constraint on block's shared memory size
-	int sharedMemPerBlockfFloats = (int)prop.sharedMemPerBlock / sizeof(float);
+	int sharedMemPerBlockfFloats = sharedMemPerBlock / sizeof(float);
 	int log2nSharedMemPerBlockfFloats = (int)log2(sharedMemPerBlockfFloats);
 	int sharedMemIters = log2nSharedMemPerBlockfFloats > log2n ? log2n : log2nSharedMemPerBlockfFloats;
 
@@ -315,12 +323,12 @@ void HadamardWithCuda(float* vec, int n, int device)
 	}
 	else 
 	{
-		num_threads = (sharedMemSize >> 2) < prop.maxThreadsPerBlock ? (sharedMemSize >> 2) : prop.maxThreadsPerBlock;
+		num_threads = (sharedMemSize >> 2) < maxThreadsPerBlock ? (sharedMemSize >> 2) : maxThreadsPerBlock;
 	}
 
 	HadamardSharedMemoryIterations <<< num_blocks, num_threads, sharedMemSize * sizeof(float) >>> (vec, sharedMemIters);
 
-	int radix8_num_threads = (n >> 3) < prop.maxThreadsPerBlock ? (n >> 3) : prop.maxThreadsPerBlock;
+	int radix8_num_threads = (n >> 3) < maxThreadsPerBlock ? (n >> 3) : maxThreadsPerBlock;
 
 	// complete the transform	
 	for (int len = sharedMemSize; len < n; len <<= 3) 
