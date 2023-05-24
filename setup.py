@@ -28,7 +28,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name='srrcomp',
-    version='0.1.1',
+    version='0.1.2',
     description='Structured random rotation (srr) based compression tools',
     long_description=long_description,
     long_description_content_type='text/markdown',
