@@ -1,6 +1,6 @@
 # Structured Random Rotation-based Compression (srrcomp)
 
-`srrcomp` provides structured random rotation based compression techniques with strong theoretical guarantees, as described in the following publications:
+`srrcomp` offers compression techniques grounded in structured random rotation, with strong theoretical guarantees, as detailed in the following publications:
 
 - Shay Vargaftik, Ran Ben-Basat, Amit Portnoy, Gal Mendelson, Yaniv Ben-Itzhak, and Michael Mitzenmacher. ["DRIVE: One-bit Distributed Mean Estimation."](https://proceedings.neurips.cc/paper/2021/hash/0397758f8990c1b41b81b43ac389ab9f-Abstract.html) Advances in Neural Information Processing Systems 34 (2021): 362-377.
 
