@@ -24,11 +24,12 @@ Compression and decompression operations are carried out on the device where the
 
 ## CUDA acceleration
 
-srrcomp offers some functions in CUDA for faster execution (up to an order of magnitude). This acceleration requires local compilation with `nvcc`/`torch`/`python` compatible versions. 
+`srrcomp` offers some functions in CUDA for faster execution (up to an order of magnitude). This acceleration requires local compilation with `nvcc`/`torch`/`python` compatible versions. 
 
-The 'gpuacctype' argument (GPU acceleration type) is set by default to 'cuda', and can be set to 'torch' to use the torch-based implementation. 
+The 'gpuacctype' argument, which specifies the GPU acceleration type, defaults to 'cuda' but can be changed to 'torch' to utilize the torch-based implementation.
 
-The Torch-based implementation is utilized when CUDA acceleration is unavailable, such as when working with CPU-based vectors or when local CUDA compilation hasn't been performed.
+The torch-based implementation is utilized when CUDA acceleration is unavailable, such as when working with CPU-based vectors or when local CUDA compilation hasn't been performed.
+
 ## Pre-requisites
 
 `torch` 
