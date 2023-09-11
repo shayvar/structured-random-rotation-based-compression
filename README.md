@@ -28,8 +28,7 @@ srrcomp offers some functions in CUDA for faster execution (up to an order of ma
 
 The 'gpuacctype' argument (GPU acceleration type) is set by default to 'cuda', and can be set to 'torch' to use the torch-based implementation. 
 
-The torch-based implementation is used, in case the CUDA acceleration is unavailable (e.g., when the verctor in CPU, or local CUDA compilation has not been done). 
-
+The Torch-based implementation is utilized when CUDA acceleration is unavailable, such as when working with CPU-based vectors or when local CUDA compilation hasn't been performed.
 ## Pre-requisites
 
 `torch` 
