@@ -18,7 +18,7 @@ In particular, srrcomp can be used for:
 
 The implementation is torch-based and thus supports CPU and GPU.
 
-The compression and decompression are being executed over the device in which the corresponding vector is stored in.
+Compression and decompression operations are carried out on the device where the associated vector is located.
 
 `srrcomp` currently contains the implementation of [EDEN](https://proceedings.mlr.press/v162/vargaftik22a.html).
 
