@@ -1,6 +1,6 @@
 # Structured Random Rotation-based Compression (srrcomp)
 
-`srrcomp` provides structured random rotation based compression techniques with strong theoretical guarantees, as described in the following publications:
+`srrcomp` offers compression techniques grounded in structured random rotation, with strong theoretical guarantees, as detailed in the following publications:
 
 - Shay Vargaftik, Ran Ben-Basat, Amit Portnoy, Gal Mendelson, Yaniv Ben-Itzhak, and Michael Mitzenmacher. ["DRIVE: One-bit Distributed Mean Estimation."](https://proceedings.neurips.cc/paper/2021/hash/0397758f8990c1b41b81b43ac389ab9f-Abstract.html) Advances in Neural Information Processing Systems 34 (2021): 362-377.
 
@@ -18,17 +18,17 @@ In particular, srrcomp can be used for:
 
 The implementation is torch-based and thus supports CPU and GPU.
 
-The compression and decompression are being executed over the device in which the corresponding vector is stored in.
+Compression and decompression operations are carried out on the device where the associated vector is located.
 
 `srrcomp` currently contains the implementation of [EDEN](https://proceedings.mlr.press/v162/vargaftik22a.html).
 
 ## CUDA acceleration
 
-srrcomp offers some functions in CUDA for faster execution (up to an order of magnitude). This acceleration requires local compilation with `nvcc`/`torch`/`python` compatible versions. 
+`srrcomp` offers some functions in CUDA for faster execution (up to an order of magnitude). This acceleration requires local compilation with `nvcc`/`torch`/`python` compatible versions. 
 
-The 'gpuacctype' argument (GPU acceleration type) is set by default to 'cuda', and can be set to 'torch' to use the torch-based implementation. 
+The 'gpuacctype' argument, which specifies the GPU acceleration type, defaults to 'cuda' but can be changed to 'torch' to utilize the torch-based implementation.
 
-The torch-based implementation is used, in case the CUDA acceleration is unavailable (e.g., when the verctor in CPU, or local CUDA compilation has not been done). 
+The torch-based implementation is utilized when CUDA acceleration is unavailable, such as when working with CPU-based vectors or when local CUDA compilation hasn't been performed.
 
 ## Pre-requisites
 
