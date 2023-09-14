@@ -40,16 +40,18 @@ if __name__ == '__main__':
 
     ### device
     if not torch.cuda.is_available() and 'cuda' in args.device_snd:
-        raise Exception('Sender device {} not available, use \'cpu\' (or different device) instead'.format(args.device_snd))
+        print('Warning: sender device {} not available, using \'cpu\' instead'.format(args.device_snd))
+        args.device_snd = 'cpu'
 
     if not torch.cuda.is_available() and 'cuda' in args.device_rcv:
-        raise Exception('Receiver device {} not available, use \'cpu\' (or different device) instead'.format(args.device_rcv))
+        print('Warning: receiver device {} not available, using \'cpu\' instead'.format(args.device_rcv))
+        args.device_rcv = 'cpu'
 
     if args.device_snd == 'cpu' and args.gpuacc_snd == 'cuda':
-        print("Sender warning: cannot use cuda acceleration on cpu")
+        print("Warning: sender cannot use cuda acceleration on cpu")
 
     if args.device_rcv == 'cpu' and args.gpuacc_rcv == 'cuda':
-        print("Receiver warning: cannot use cuda acceleration on cpu")
+        print("Warning: receiver cannot use cuda acceleration on cpu")
 
     # vector distribution
     if args.dist == 'lognormal':
@@ -97,7 +99,7 @@ if __name__ == '__main__':
                 end = torch.cuda.Event(enable_timing=True)
                  
             vec = vec_distribution.sample([args.dim]).to(args.device_snd).view(-1)
-                        
+
             start_cpu = time.time_ns()
 
             if args.device_snd == args.device_rcv and args.device_snd != 'cpu':
@@ -127,7 +129,7 @@ if __name__ == '__main__':
         rvec /= args.clients
         ovec /= args.clients
         
-        NMSE += torch.norm(ovec.to(rvec.device)-rvec, 2)**2 / (sum_norm.to(rvec.device) / args.clients)
+        NMSE += torch.norm(ovec.to(rvec.device)-rvec, 2)**2 / (sum_norm.to(rvec.device) / args.clients + 1e-9)  # adding 1e-9 for numerical stability
     
     print("Normalized Mean Squared Error (NMSE) = {}".format(NMSE/args.trials))
     if args.device_snd == args.device_rcv and args.device_snd != 'cpu':

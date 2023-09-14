@@ -12,7 +12,7 @@ import warnings
 
 class SRRCompUtils:
 
-    def __init__(self, gpuacctype = 'cuda'):
+    def __init__(self, gpuacctype='cuda'):
 
         self.gpuacctype = gpuacctype
 
@@ -80,11 +80,11 @@ class SRRCompUtils:
         seed = (seed * 1664525 + 1013904223) & mask32
         seed = (seed * 8121 + 28411) & mask32
 
-        r =  torch.arange(end=size_scaled, device=device) + seed
+        r = torch.arange(end=size_scaled, device=device) + seed
 
         # LCG (https://en.wikipedia.org/wiki/Linear_congruential_generator)
         r = (1103515245 * r + 12345 + seed) & mask32
-        r = (1140671485  * r + 12820163  + seed) & mask32
+        r = (1140671485 * r + 12820163 + seed) & mask32
 
         # SplitMix (https://dl.acm.org/doi/10.1145/2714064.2660195)
         r += 0x9e3779b9
@@ -114,9 +114,9 @@ class SRRCompUtils:
         h = 2
         while h <= d:
             hf = h//2
-            vec = vec.view(d//h,h)
-            vec[:,:hf]  = vec[:,:hf] + vec[:,hf:2*hf]
-            vec[:,hf:2*hf] = vec[:,:hf] - 2*vec[:,hf:2*hf]
+            vec = vec.view(d//h, h)
+            vec[:, :hf] = vec[:, :hf] + vec[:, hf:2*hf]
+            vec[:, hf:2*hf] = vec[:, :hf] - 2*vec[:, hf:2*hf]
             h *= 2
 
         return vec.view(-1)
@@ -134,7 +134,7 @@ class SRRCompUtils:
 
             return bv
 
-        unit =  bins.numel() // 32
+        unit = bins.numel() // 32
         bits = torch.zeros(unit * nbits, dtype=torch.int32, device=bins.device)
 
         for i in range(nbits):
@@ -241,12 +241,12 @@ class Eden(SRRCompUtils):
     https://github.com/shayvar/structured-random-rotation-based-compression
     """
 
-    def __init__(self, gpuacctype='cuda', max_padding_overhead=0.1):
+    def __init__(self, gpuacctype='cuda', max_padding_overhead=0.1, epsilon=1e-9):
 
         super().__init__(gpuacctype=gpuacctype)
-        self.centroids, self.boundaries = self._gen_normal_centoirds_and_boundaries()
+        self.centroids, self.boundaries = self._gen_normal_centroids_and_boundaries()
         self.max_padding_overhead = max_padding_overhead
-
+        self.epsilon = epsilon  # for numerical stability
 
     def compress(self, vec, nbits, seed):
 
@@ -256,6 +256,9 @@ class Eden(SRRCompUtils):
                             torch.float16, torch.half, torch.bfloat16]:
             warnings.warn("Vector input type should be float.")
 
+        if torch.any(torch.isnan(vec)):
+            raise Exception("Input vector contains nan entries!")
+
         # cast to float32
         vec = vec.to(torch.float32).clone()
 
@@ -264,7 +267,7 @@ class Eden(SRRCompUtils):
                 return 0
             return 2 ** int(np.log2(n))
             
-        def hgihPO2(n):
+        def highPO2(n):
             if not n:
                 return 0
             return 2 ** (int(np.ceil(np.log2(n))))
@@ -274,7 +277,7 @@ class Eden(SRRCompUtils):
         dim = remaining = vec.numel()
         curr_index = 0        
         
-        while (hgihPO2(remaining) - remaining) / dim > self.max_padding_overhead:
+        while (highPO2(remaining) - remaining) / dim > self.max_padding_overhead:
             
             low = lowPO2(remaining)
             num_hadamard = 1 + (low < 2 ** 10)
@@ -286,10 +289,9 @@ class Eden(SRRCompUtils):
         
         num_hadamard = 1 + (dim - curr_index < 2 ** 10)
         res.append(self._compress_slice(vec[curr_index:], vec_type, nbits, num_hadamard, seed))
-                    
+
         return res
- 
-          
+
     def _compress_slice(self, vec, vec_type, nbits, num_hadamard, seed):
      
         # make sure that all allocated tensors are on the same device
@@ -298,7 +300,7 @@ class Eden(SRRCompUtils):
         # which implementation to use?
         funckey = 'cpu' if str(device) == 'cpu' else 'gpu'
               
-        # pad to a power of 2 if nedded and remember orig_dim for reconstruction
+        # pad to a power of 2 if needed and remember orig_dim for reconstruction
         # also the minimum slice size mast be at least 32 for CUDA accelerated packing
         orig_dim = n = vec.numel()
         
@@ -314,7 +316,7 @@ class Eden(SRRCompUtils):
                 
         for i in range(num_hadamard):
                         
-            diag = self.randDiag(n, device, seed+i) # rotation(s) seed is seed+i
+            diag = self.randDiag(n, device, seed+i)  # rotation(s) seed is seed+i
             vec = vec * diag
             vec = self.utils[funckey]['Hadamard'](vec.to(torch.float32)) / np.sqrt(n)
             
@@ -329,7 +331,7 @@ class Eden(SRRCompUtils):
 
         res = []
 
-        for d in data:       
+        for d in data:
             res.append(self._decompress_slice(d['packed_bins'], d['vec_type'], d['nbits'], d['scale'], d['orig_dim'],
                                               d['num_hadamard'], d['seed']))
         
@@ -346,7 +348,7 @@ class Eden(SRRCompUtils):
                 
         for i in range(num_hadamard):
             
-            diag = self.randDiag(vec.numel(), packed_bins.device, seed + num_hadamard - 1 - i) # rotation(s) seed is seed + num_hadamard - 1 - i
+            diag = self.randDiag(vec.numel(), packed_bins.device, seed + num_hadamard - 1 - i)  # rotation(s) seed is seed + num_hadamard - 1 - i
             vec = self.utils[funckey]['Hadamard'](vec) / np.sqrt(vec.numel())
             vec = vec * diag
                 
@@ -356,12 +358,12 @@ class Eden(SRRCompUtils):
     def _quantize(self, vec, nbits):
         
         bins = torch.bucketize(vec * (vec.numel() ** 0.5) / torch.norm(vec, 2), self.boundaries[nbits].to(vec.device))
-        scale = torch.norm(vec, 2) ** 2 / torch.dot(torch.take(self.centroids[nbits].to(vec.device), bins), vec)
+        scale = torch.norm(vec, 2) ** 2 / (torch.dot(torch.take(self.centroids[nbits].to(vec.device), bins), vec) + self.epsilon)
 
         return bins, scale
         
         
-    def _gen_normal_centoirds_and_boundaries(self):
+    def _gen_normal_centroids_and_boundaries(self):
     
         ### half-normal centroids
         centroids = {}

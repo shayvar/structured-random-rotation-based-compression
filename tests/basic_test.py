@@ -38,6 +38,6 @@ if __name__ == '__main__':
 
     rvec = eden_receiver.decompress(data)
 
-    NMSE = torch.norm(vec-rvec, 2)**2 / torch.norm(vec, 2)**2
+    NMSE = torch.norm(vec-rvec, 2)**2 / (torch.norm(vec, 2)**2 + 1e-9)  # adding 1e-9 for numerical stability
     
     print("Normalized Mean Squared Error (NMSE) = {}".format(NMSE))
